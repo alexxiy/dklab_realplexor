@@ -81,16 +81,16 @@ SYNOPSIS
 --------
 
 1. In JavaScript code, execute:
-<script type="text/javascript" src="/path/to/dklab_realplexor.js"></script>
-var realplexor = new Dklab_Realplexor("http://rpl.yoursite.com/");
+<script type="text/javascript" src="https://rpl.yoursite.com/?identifier=SCRIPT"></script>
+var realplexor = new Dklab_Realplexor("https://rpl.yoursite.com/");
 realplexor.subscribe("alpha", function(data) { alert("alpha: " + data) });
 realplexor.subscribe("beta", function(data) { alert("beta: " + data) });
 realplexor.execute();
 
 2. In PHP code, execute:
 require dirname(__FILE__) . '/Dklab/Realplexor.php';
-$realplexor = new Dklab_Realplexor("127.0.0.1", "10010");
-$realplexor->send(array("alpha", "beta"), "hello!");
+$realplexor = new Dklab_Realplexor('127.0.0.1', 10010);
+$realplexor->send(['alpha', 'beta'], 'hello!');
 
 3. See more details in Realplexor documentation.
 
