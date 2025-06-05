@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -55,64 +57,27 @@ string extract_option(string opt)
 
 string get_root_dir()
 {
-    return path(SELF).branch_path().string();
+    return path(SELF).parent_path().string();
 }
 
-string vformat(const char *fmt, va_list ap)
+const std::string strerrno()
 {
-    // Allocate a buffer on the stack that's big enough for us almost
-    // all the time.  Be prepared to allocate dynamically if it doesn't fit.
-    size_t size = 1024;
-    char stackbuf[1024];
-    vector<char> dynamicbuf;
-    char *buf = &stackbuf[0];
-    while (1) {
-        // Try to vsnprintf into our buffer.
-        int needed = vsnprintf (buf, size, fmt, ap);
-        // NB. C99 (which modern Linux and OS X follow) says vsnprintf
-        // failure returns the length it would have needed.  But older
-        // glibc and current Windows return -1 for failure, i.e., not
-        // telling us how much was needed.
-        if (needed <= (int)size && needed >= 0) {
-            // It fit fine so we're done.
-            return string (buf, (size_t) needed);
-        }
-        // vsnprintf reported that it wanted to write more characters
-        // than we allotted.  So try again using a dynamic buffer.  This
-        // doesn't happen very often if we chose our initial size well.
-        size = (needed > 0) ? (needed+1) : (size*2);
-        dynamicbuf.resize (size);
-        buf = &dynamicbuf[0];
-    }
-}
-
-string format(const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    string buf = vformat(fmt, ap);
-    va_end(ap);
-    return buf;
-}
-
-const string strerrno()
-{
-    return strerror(errno);
+    return std::strerror(errno);
 }
 
 void die(string s)
 {
     s = regex_replace(s, regex("\\$!"), [](smatch s) { return strerrno(); });
-    throw runtime_error(s);
+    throw std::runtime_error(s);
 }
 
-string backtick(string cmd)
+std::string backtick(const std::string& cmd)
 {
     FILE* f = popen(cmd.c_str(), "r");
     if (!f) {
-        die(format("popen(%s): $!", cmd.c_str()));
+        die(std::format("popen({}): $!", cmd));
     }
-    string str("");
+    std::string str;
     char c;
     while (EOF != (c = fgetc(f))) {
         str += c;

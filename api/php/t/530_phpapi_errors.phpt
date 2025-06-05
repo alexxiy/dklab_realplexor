@@ -30,5 +30,5 @@ try {
 --EXPECT--
 Error #111: Connection refused
 Identifier must be alphanumeric, "no-num" given
-Cursor must be numeric, "aaa" given
+Cursor must be integer, "aaa" given
 #   [pairs_by_fhs=0 data_to_send=0 connected_fhs=0 online_timers=0 cleanup_timers=0 events=*]

@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -169,7 +171,8 @@ private:
                 rdata = "";
                 return false;
             }
-            vector<ident_t> ids_to_process;
+            std::vector<ident_t> ids_to_process;
+            std::vector<std::string> lines;
             auto checker = _id_prefixes_to_checker("");
             auto refdata = shared_ptr<string>(new string(rdata, pos_body));
             for (auto& pair: *pairs) {
@@ -189,6 +192,9 @@ private:
                     LOGGER("[" + id + "] cleaned, because no data is pushed within last " + lexical_cast<string>(timeout) + " seconds");
                 };
                 cleanup_timers.start_timer_for_id<decltype(callback)>(id, timeout, callback);
+
+                // collect id + cursor for the output
+                lines.push_back(pair.id + " " + lexical_cast<std::string>(pair.cursor) + "\n");
             }
             // One debug message per connection.
             if (ids_to_process.size()) {
@@ -196,6 +202,9 @@ private:
             }
             // Send pending data.
             Realplexor::Common::send_pendings(ids_to_process);
+
+            // return passed or newly created cursor(s) of the event
+            _send_response(join(lines, ""));
         }
         return false;
     }
@@ -209,20 +218,25 @@ private:
     }
 
     // Command: fetch all online IDs.
-    void _cmd_online(const string& id_prefixes)
+    void _cmd_online(const std::string& id_prefixes)
     {
-        vector<ident_t> ids;
+        std::vector<ident_t> ids;
         online_timers.get_ids_ref(_id_prefixes_to_checker(id_prefixes), ids);
-        DEBUG("sending " + lexical_cast<string>(ids.size()) + " online identifiers");
-        _send_response(join(apply(ids, [](string& id) { return id + " " + lexical_cast<string>(connected_fhs.get_num_fhs_by_id(id)) + "\n"; }), ""));
+        DEBUG("sending " + lexical_cast<std::string>(ids.size()) + " online identifiers");
+
+        auto lines = map_to_vector(ids, [](const std::string& id) {
+            return id + " " + lexical_cast<std::string>(connected_fhs.get_num_fhs_by_id(id)) + "\n";
+        });
+
+        _send_response(join(lines, ""));
     }
 
     // Command: watch for clients online/offline status changes.
-    void _cmd_watch(const string& arg)
+    void _cmd_watch(const std::string& arg)
     {
         smatch m;
         cursor_t cursor = 0;
-        string id_prefixes = "";
+        std::string id_prefixes = "";
         try {
             if (regex_search(arg, m, regex("^(\\S+)\\s+(.*)$"))) {
                 cursor = lexical_cast<cursor_t>(m[1]);
@@ -230,13 +244,18 @@ private:
             } else {
                 cursor = lexical_cast<cursor_t>(arg);
             }
-        } catch (bad_lexical_cast& e) {
+        } catch (const bad_lexical_cast&) {
             cursor = 0;
         }
         DataEventChain list;
         events.get_recent_events(cursor, _id_prefixes_to_checker(id_prefixes), list);
-        DEBUG("sending " + lexical_cast<string>(list.size()) + " events");
-        _send_response(join(apply(list, [](DataEvent& e) { return e.getType() + " " + lexical_cast<string>(e.cursor) + ":" + e.id + "\n"; }), ""));
+        DEBUG("sending " + lexical_cast<std::string>(list.size()) + " events");
+
+        auto lines = map_to_vector(list, [](const DataEvent& e) {
+            return e.getType() + " " + lexical_cast<std::string>(e.cursor) + ":" + e.id + "\n";
+        });
+
+        _send_response(join(lines, ""));
     }
 
     // Command: dump debug statistics.

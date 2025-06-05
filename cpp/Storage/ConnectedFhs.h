@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -75,13 +77,17 @@ public:
         return storage.count(id)? storage[id].size() : 0;
     }
 
-    string get_stats()
+    std::string get_stats()
     {
-        vector<string> result;
+        std::vector<std::string> result;
         for (auto& pairs: storage) {
+            auto transformed = map_to_vector(pairs.second, [](const DataCursorFhByFh::value_type& e) {
+                return "(" + lexical_cast<std::string>(e.second.fh) + ")";
+            });
+
             result.push_back(
-                string(pairs.first) + " => " +
-                join(apply(pairs.second, [](const DataCursorFhByFh::value_type& e) { return "(" + lexical_cast<string>(e.second.fh) + ")"; }), ", ") +
+                std::string(pairs.first) + " => " +
+                join(transformed, ", ") +
                 "\n"
             );
         }

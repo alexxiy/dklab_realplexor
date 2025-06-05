@@ -1,16 +1,16 @@
 <div id="TEST">
-    <?=basename($_SERVER['REQUEST_URI'])?>: setCursor() test
+    <?php echo basename($_SERVER['REQUEST_URI']); ?>: setCursor() test
 </div>
 
 
-<?include "contrib/init.php"?>
+<?php include 'contrib/init.php'; ?>
 <div id="FILE">
     <script>
     execute(function() {
         substituteResponse([
             [
-                { identifier: '10:AAA', data: "'aaa'" },
-                { identifier: '10:BBB', data: "'bbb'" }
+                { identifier: '10:AAA', data: '"aaa"' },
+                { identifier: '10:BBB', data: '"bbb"' }
             ]
         ]);
         var func = function(r, id) {
@@ -26,9 +26,9 @@
 
 
 <pre id="EXPECT">
-Request: /?identifier=5:AAA
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=5:AAA
 AAA: callback called with data:
 aaa
 
-Request: /?identifier=10:AAA
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA
 </pre>

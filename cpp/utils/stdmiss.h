@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -28,15 +30,18 @@ string operator+ (const char* s1, const string& s2)
     return string(s1) + s2;
 }
 
-// Magic!
-template<typename V, typename Cb>
-auto apply(V vec, Cb&& callback) -> vector<decltype(callback(*vec.begin()))>
+template<typename Container, typename Callback>
+auto map_to_vector(const Container& c, Callback&& cb)
+    -> std::vector<decltype(cb(*c.begin()))>
 {
-    vector<decltype(callback(*vec.begin()))> result;
-    for (auto &e: vec) result.push_back(callback(e));
-    return result;
+    std::vector<decltype(cb(*c.begin()))> out;
+    out.reserve(c.size());
+    for (const auto& item : c)
+        out.push_back(cb(item));
+    return out;
 }
 
+// Magic!
 template<typename KT, typename VT>
 vector<KT> keys(const map<KT, VT>& m)
 {

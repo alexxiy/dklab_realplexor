@@ -20,19 +20,29 @@ send_in(null, "stats");
 
 
 ?>
---EXPECT--
+--EXPECTF--
 IN <== X-Realplexor: identifier=abc,def
 IN <==
 IN <== "a"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 46
 IN ==>
+IN ==> abc %d
+IN ==> def %d
 IN <== X-Realplexor: identifier=abc,def
 IN <==
 IN <== "bb"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 46
 IN ==>
+IN ==> abc %d
+IN ==> def %d
 IN <== stats
 IN ==> HTTP/1.0 200 OK
 IN ==> Content-Type: text/plain
-IN ==> Content-Length: 259
+IN ==> Content-Length: 231
 IN ==>
 IN ==> [data_to_send]
 IN ==> abc => [*: 4b], [*: 3b]
@@ -50,11 +60,16 @@ IN ==> [pairs_by_fhs]
 IN <== X-Realplexor: identifier=abc,def
 IN <==
 IN <== "ccc"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 46
 IN ==>
+IN ==> abc %d
+IN ==> def %d
 IN <== stats
 IN ==> HTTP/1.0 200 OK
 IN ==> Content-Type: text/plain
-IN ==> Content-Length: 259
+IN ==> Content-Length: 231
 IN ==>
 IN ==> [data_to_send]
 IN ==> abc => [*: 5b], [*: 4b]

@@ -9,7 +9,7 @@ $result = preg_replace('/^[^\r\n]+ \s SUCCESS (\r?\n|$)/mx', '', $result);
 
 $hash = (preg_match('/ERROR/s', $result)? "error" : "success") . '_' . md5($result);
 
-$dir = "/tmp/jstest_result";
+$dir = sys_get_temp_dir() . "/jstest_result";
 @mkdir($dir, 0777);
 
 $f = fopen("$dir/$hash.txt", "w");

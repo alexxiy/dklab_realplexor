@@ -1,31 +1,31 @@
 <div id="TEST">
-    <?=basename($_SERVER['REQUEST_URI'])?>: one error response in the serie
+    <?php echo basename($_SERVER['REQUEST_URI']); ?>: one error response in the serie
 </div>
 
 
-<?include "contrib/init.php"?>
+<?php include 'contrib/init.php'; ?>
 <div id="FILE">
     <script>
     execute(function() {
         substituteResponse([
             [
-                { identifier: '10:AAA', data: "'aaa'" },
-                { identifier: '10:BBB', data: "'bbb'" }
+                { identifier: '10:AAA', data: '"aaa"' },
+                { identifier: '10:BBB', data: '"bbb"' }
             ],
             [
-                { identifier: '20:AAA', data: "'error'" },
-                { identifier: '20:BBB', data: "'ddd'" }
+                { identifier: '20:AAA', data: '"error"' },
+                { identifier: '20:BBB', data: '"ddd"' }
             ],
             [
-                { identifier: '30:AAA', data: "'xxx'" },
-                { identifier: '30:BBB', data: "'yyy'" }
+                { identifier: '30:AAA', data: '"xxx"' },
+                { identifier: '30:BBB', data: '"yyy"' }
             ]
         ]);
         var func = function(r, id) {
             JsTest.write(id + ": callback called with data: \n" + r + "\n\n");
             if (r.match(/error/)) throw "Emulate an error!";
         };
-        realplexor._realplexor._error = function(prefix, msg) { JsTest.write(prefix + "\n"); }
+        realplexor._loader._error = function(prefix, msg) { JsTest.write(prefix + "\n"); }
         realplexor.setCursor('AAA', 5);
         realplexor.subscribe('AAA', func);
         realplexor.subscribe('BBB', func);
@@ -37,14 +37,14 @@
 
 
 <pre id="EXPECT">
-Request: /?identifier=5:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=5:AAA,BBB
 AAA: callback called with data:
 aaa
 
 BBB: callback called with data:
 bbb
 
-Request: /?identifier=10:AAA,10:BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,10:BBB
 AAA: callback called with data:
 error
 
@@ -52,12 +52,12 @@ Error executing callback #0 for ID AAA: Emulate an error!
 BBB: callback called with data:
 ddd
 
-Request: /?identifier=20:AAA,20:BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=20:AAA,20:BBB
 AAA: callback called with data:
 xxx
 
 BBB: callback called with data:
 yyy
 
-Request: /?identifier=30:AAA,30:BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=30:AAA,30:BBB
 </pre>

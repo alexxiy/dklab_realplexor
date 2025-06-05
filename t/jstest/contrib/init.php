@@ -1,21 +1,24 @@
-<meta http-equiv="Content-type" content="text/html; charset=windows-1251">
+<?php
+    const REALPLEXOR_URL = 'https://im1.platform.loc';
+?>
+
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
 
 <!-- Include testing suite. -->
-<link rel="stylesheet" type="text/css" href="JsTest/JsTest.css?<?=time()?>"/>
-<script type="text/javascript" language="JavaScript" src="JsTest/JsTest.js?<?=time()?>"></script>
+<link rel="stylesheet" type="text/css" href="JsTest/JsTest.css?<?php echo time(); ?>"/>
+<script type="text/javascript" language="JavaScript" src="JsTest/JsTest.js?<?php echo time(); ?>"></script>
 
 <div style='clear:both; margin-bottom: 13px'>
-    <?$_SERVER['REQUEST_URI'] = preg_replace('/([&?]\d+)+$/', '', $_SERVER['REQUEST_URI'])?>
-    <a href="<?=$_SERVER['REQUEST_URI'] . (strpos($_SERVER['REQUEST_URI'], '?')? '&' : '?') . time()?>">Refresh</a> | <a href=".">Index</a>
+    <?php $_SERVER['REQUEST_URI'] = preg_replace('/([&?]\d+)+$/', '', $_SERVER['REQUEST_URI']); ?>
+    <a href="<?php echo $_SERVER['REQUEST_URI'] . (strpos($_SERVER['REQUEST_URI'], '?')? '&' : '?') . time(); ?>">Refresh</a> | <a href=".">Index</a>
 </div>
 
 <!-- Common code used for all test scripts. -->
-<script type="text/javascript" src="../../../dklab_realplexor.js"></script>
+<script type="text/javascript" src="<?php echo REALPLEXOR_URL; ?>/?identifier=SCRIPT"></script>
 <script>
-realplexor = new Dklab_Realplexor(
-    'http://<?=$_SERVER['HTTP_HOST']?><?=preg_replace('{/[^/]*$}s', '', $_SERVER['REQUEST_URI'])?>/contrib/iframe.php',
-    window.NAMESPACE,
-    true
+var realplexor = new Dklab_Realplexor(
+    '<?php echo REALPLEXOR_URL; ?>',
+    window.NAMESPACE
 );
 </script>
 
@@ -47,9 +50,9 @@ function makeResponseText(resp) {
             var hash = {};
             for (var j = 0; j < pairs.length; j++) {
                 if (pairs[j].match(/^(.*):(.*)$/)) {
-                    pairs[j] = '"' + RegExp.$2 + '": ' + RegExp.$1;
+                    pairs[j] = '"' + RegExp.$2 + '": "' + RegExp.$1 + '"';
                 } else {
-                    pairs[j] = '"' + pairs[j] + '": 1';;
+                    pairs[j] = '"' + pairs[j] + '": "1"';;
                 }
             }
             text += '    "ids": { ' + pairs.join(",") + ' },\n';
@@ -93,16 +96,16 @@ function substituteResponse(resps) {
         }
         return xhr;
     }
-    if (realplexor._realplexor) realplexor._realplexor._getXmlHttp = xhr_stub;
+    if (realplexor._loader) realplexor._loader._getXmlHttp = xhr_stub;
 }
 
 function execute(func) {
-    if (!realplexor._realplexor) {
+    if (!realplexor._loader) {
         // Wait for Realplexor object presence.
         setTimeout(function() { execute(func) }, 50);
         return;
     }
-    realplexor._realplexor._getXmlHttp = xhr_stub;
+    realplexor._loader._getXmlHttp = xhr_stub;
     setTimeout(func, 50);
 }
 JsTest.initialize();

@@ -3,22 +3,24 @@
 <style>
 .form { float: left; margin-right: 3em; }
 </style>
-<script type="text/javascript" src="static/jquery.min.js"></script>
+<script type="text/javascript" src="static/jquery-3.7.1.min.js"></script>
 <script>
-$(".send").live("click", function() {
-    var ids = $.map($('.identifier', this.form), function(e) { return e.value? e.value : null });
-    var message = this.form.message.value;
-    var repeat = this.form.repeat.value;
-    var loader = $('img', this.form);
-    loader.show();
-    $.ajax({
-        type: "POST",
-        url: "ajax_post.php",
-        data: { ids: ids.join(","), message: message, repeat: repeat },
-        complete: function(xhr, status) {
-            loader.hide();
-            if (xhr.responseText) alert("Error: " + xhr.responseText);
-        }
+$(document).ready(function() {
+    $('.send').click(function() {
+        var ids = $.map($('.identifier', this.form), function(e) { return e.value? e.value : null });
+        var message = this.form.message.value;
+        var repeat = this.form.repeat.value;
+        var loader = $('img', this.form);
+        loader.show();
+        $.ajax({
+            type: "POST",
+            url: "ajax_post.php",
+            data: { ids: ids.join(","), message: message, repeat: repeat },
+            complete: function(xhr, status) {
+                loader.hide();
+                if (xhr.responseText) alert("Error: " + xhr.responseText);
+            }
+        });
     });
 });
 </script>
@@ -34,14 +36,14 @@ When you press a button, your message is sent via server-side dklab_realplexor e
 </p>
 
 
-<?$ids = strlen(@$_GET['ids'])? explode(",", $_GET['ids']) : array("alpha", "beta")?>
-<?foreach (array_merge($ids, array("gamma,{$ids[0]}")) as $id) {?>
+<?php $ids = strlen(@$_GET['ids']) ? explode(",", $_GET['ids']) : array("alpha", "beta"); ?>
+<?php foreach (array_merge($ids, array("gamma,{$ids[0]}")) as $id) { ?>
 <form onsubmit="return false" class="form">
 <table>
 <tr>
     <td>Channel to send to:</td>
     <td>
-        <input type="text" class="identifier" value="<?=$id?>" />
+        <input type="text" class="identifier" value="<?php echo $id; ?>" />
     </td>
 </tr>
 <tr>
@@ -52,9 +54,9 @@ When you press a button, your message is sent via server-side dklab_realplexor e
     <td colspan="2">
         <input type="button" value="Send message" class="send" />
         <select name="repeat">
-        <?for ($i = 1; $i <= 5; $i++) {?>
-            <option value="<?=$i?>"><?=$i?></option>
-        <?}?>
+        <?php for ($i = 1; $i <= 5; $i++) { ?>
+            <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+        <?php } ?>
         </select>
         times
         <img src="static/loading_green.gif" style="display:none">
@@ -62,7 +64,7 @@ When you press a button, your message is sent via server-side dklab_realplexor e
 </tr>
 </table>
 </form>
-<?}?>
+<?php } ?>
 
 
 </body>

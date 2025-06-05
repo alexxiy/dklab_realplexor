@@ -1,5 +1,5 @@
 <div id="TEST">
-    <?=basename($_SERVER['REQUEST_URI'])?>: we must not skip callback calls even if a single callback is subscribed to 2 IDs and the same data is passed to these 2 IDs
+    <?php echo basename($_SERVER['REQUEST_URI']); ?>: we must not skip callback calls even if a single callback is subscribed to 2 IDs and the same data is passed to these 2 IDs
 </div>
 <!--
 Because it is an caller's code logic if we should skip the same data or not.
@@ -9,13 +9,13 @@ arrived. If we want to skip a callback call, should we skip the first call
 (to "public" ID) or the second one? Indefinite. So we should not skip anything.
 -->
 
-<?include "contrib/init.php"?>
+<?php include 'contrib/init.php'; ?>
 <div id="FILE">
     <script>
     execute(function() {
         substituteResponse([
             [
-                { identifier: '10:AAA,10:BBB', data: "'aaa'" },
+                { identifier: '10:AAA,10:BBB', data: '"aaa"' },
             ],
         ]);
         var callback = function(r, id) {
@@ -31,12 +31,12 @@ arrived. If we want to skip a callback call, should we skip the first call
 
 
 <pre id="EXPECT">
-Request: /?identifier=AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=AAA,BBB
 Callback called for ID=AAA:
 aaa
 
 Callback called for ID=BBB:
 aaa
 
-Request: /?identifier=10:AAA,10:BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,10:BBB
 </pre>

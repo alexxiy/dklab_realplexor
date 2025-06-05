@@ -1,8 +1,10 @@
 #@
 #@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 #@ Author: Dmitry Koterov, dkLab (C)
-#@ GitHub: http://github.com/DmitryKoterov/
-#@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+#@ License: GPL 2.0
+#@
+#@ 2025-* Contributor: Alexxiy
+#@ GitHub: http://github.com/alexxiy/
 #@
 
 ##
@@ -45,7 +47,7 @@ sub notify {
         shift @{$self->{chains}};
     }
     # Add item.
-    push @$chain, [ $self->{cur_pos}++, $event, $id ];
+    push @$chain, [ ++$self->{cur_pos}, $event, $id ];
 }
 
 # Return events newer than $from_cursor.

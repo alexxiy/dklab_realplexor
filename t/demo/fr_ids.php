@@ -1,4 +1,4 @@
-<?require_once "_common.php"?>
+<?php require_once "_common.php"; ?>
 <html>
 <head>
 
@@ -16,11 +16,11 @@ body { font-size: 120%; }
 .close { cursor: hand; cursor: pointer; }
 </style>
 
-<script type="text/javascript" src="http://rpl.<?=$_SERVER['HTTP_HOST']?>/?identifier=SCRIPT&<?=0*time()?>"></script>
-<script type="text/javascript" src="static/jquery.min.js"></script>
+<script type="text/javascript" src="https://<?php echo $subdomain . $_SERVER['HTTP_HOST']; ?>/?identifier=SCRIPT&nocache=<?php echo time(); ?>"></script>
+<script type="text/javascript" src="static/jquery-3.7.1.min.js"></script>
 <script>
 var realplexor = new Dklab_Realplexor(
-    "http://rpl.<?=$_SERVER['HTTP_HOST']?>/?<?=0*time()?>",  // URL of engine
+    "https://<?php echo $subdomain . $_SERVER['HTTP_HOST']; ?>/",  // URL of engine
     "demo_" // namespace
 );
 $(document).ready(function() {
@@ -52,7 +52,7 @@ $(document).ready(function() {
     }
 
     // Handle "close button".
-    $('.close').live('click', function() {
+    $('.close').on('click', function() {
         var n = $(this).parents('.board');
         realplexor.unsubscribe(n[0].identifier, n[0].callback);
         realplexor.execute();
@@ -69,14 +69,14 @@ $(document).ready(function() {
     realplexor.subscribe("who_is_online", function(data) {
         setOnline(data);
     });
-    setOnline(<?=json_encode($mpl->cmdOnline())?>);
+    setOnline(<?php echo json_encode($mpl->cmdOnline()); ?>);
 
 
     // Create initial boards set.
-    <?$ids = strlen(@$_GET['ids'])? explode(",", $_GET['ids']) : array("alpha", "beta")?>
-    <?foreach ($ids as $id) {?>
-        addListen(<?=json_encode($id)?>);
-    <?}?>
+    <?php $ids = strlen(@$_GET['ids'])? explode(",", $_GET['ids']) : array("alpha", "beta"); ?>
+    <?php foreach ($ids as $id) { ?>
+        addListen(<?php echo json_encode($id); ?>);
+    <?php } ?>
 
 });
 </script>

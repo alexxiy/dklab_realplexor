@@ -50,15 +50,29 @@ recv_wait();
 IN <== X-Realplexor: identifier=100:aa
 IN <==
 IN <== "data to limiter ID"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 7
 IN ==>
+IN ==> aa 100
 IN <== X-Realplexor: identifier=20:abc
 IN <==
 IN <== "public data"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 7
 IN ==>
+IN ==> abc 20
 IN <== X-Realplexor: identifier=20:abc,30:def,40:ghi,*aa,*bb
 IN <==
 IN <== "limited data"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 21
 IN ==>
+IN ==> abc 20
+IN ==> def 30
+IN ==> ghi 40
 Only public data should be returned, matched 'abc'
 WA <-- identifier=10:abc,20:def
 WA --> HTTP/1.1 200 OK

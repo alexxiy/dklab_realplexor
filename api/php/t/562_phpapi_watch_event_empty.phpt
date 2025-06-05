@@ -13,7 +13,7 @@ array (
   0 =>
   array (
     'event' => 'FAKE',
-    'pos' => '10',
+    'pos' => 10,
     'id' => 'FAKE',
   ),
 )

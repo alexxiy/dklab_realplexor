@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -108,7 +110,7 @@ public:
         return true;
     }
 
-    // Send IFRAME content.
+    // Send SCRIPT content.
     static void send_static(fh_t fh, const string& content, const string& last_modified, const string& type)
     {
         fh->send("HTTP/1.1 200 OK\r\n");
@@ -235,19 +237,19 @@ private:
     //   },
     //   ...
     // }
-    static void _do_send(DataToSendByFh& data_by_fh, set<ident_t>& seen_ids)
+    static void _do_send(DataToSendByFh& data_by_fh, std::set<ident_t>& seen_ids)
     {
         for (DataToSendByFh::value_type &pair: data_by_fh) {
-            vector<string> out_vec;
+            std::vector<std::string> out_vec;
 
             // Additional ordering by raw data is for better determinism in tests.
-            vector<DataToSendChunk*> triple_ptrs;
-            transform(
+            std::vector<DataToSendChunk*> triple_ptrs;
+            std::transform(
                 pair.second.begin(), pair.second.end(),
                 std::back_inserter(triple_ptrs),
                 [](DataToSendByDataRef::value_type& p) { return &p.second; }
             );
-            sort(
+            std::sort(
                 triple_ptrs.begin(), triple_ptrs.end(),
                 [](DataToSendChunk* a, DataToSendChunk* b) {
                     return a->cursor < b->cursor? true : (a->cursor > b->cursor? false : (*a->rdata < *b->rdata));
@@ -257,27 +259,27 @@ private:
             // Build JSON result.
             for (DataToSendChunk* triple: triple_ptrs) {
                 // Build one response block.
-                // It's very to send cursors as string to avoid rounding.
-                vector<string> ids = apply(triple->ids, [](const std::pair<ident_t, cursor_t>& pair) { return "\"" + pair.first + "\": \"" + lexical_cast<string>(pair.second) + "\""; });
+                // It's very important to send cursors as strings to avoid rounding.
+                std::vector<std::string> ids = map_to_vector(triple->ids, [](const std::pair<ident_t, cursor_t>& pair) { return "\"" + pair.first + "\": \"" + lexical_cast<std::string>(pair.second) + "\""; });
                 out_vec.push_back(
                     "  {\n"
                     "    \"ids\": { " + join(ids, ", ") + " },\n"
-                    "    \"data\":" + (triple->rdata->find("\n") != string::npos? "\n" : " ") + *triple->rdata + "\n"
+                    "    \"data\":" + (triple->rdata->find("\n") != std::string::npos? "\n" : " ") + *triple->rdata + "\n"
                     "  }"
                 );
             }
 
             // Join response blocks into one "multipart".
-            string out = "[\n" + join(out_vec, ",\n") + "\n]";
+            std::string out = "[\n" + join(out_vec, ",\n") + "\n]";
             fh_t fh = pair.second.begin()->second.fh;
             // Attention! We MUST use print, not syswrite, because print correctly
             // continues broken transmits for large data packets.
             int r1 = fh->send(out);
             int r2 = _shutdown_fh(fh);
             logger(
-                "<- sending " + lexical_cast<string>(out_vec.size()) + " responses " +
-                "(" + lexical_cast<string>(out.length()) + " bytes) from " +
-                "[" + join(seen_ids, ", ") + "] (print=" + lexical_cast<string>(r1) + ", shutdown=" + lexical_cast<string>(r2) + ")"
+                "<- sending " + lexical_cast<std::string>(out_vec.size()) + " responses " +
+                "(" + lexical_cast<std::string>(out.length()) + " bytes) from " +
+                "[" + join(seen_ids, ", ") + "] (print=" + lexical_cast<std::string>(r1) + ", shutdown=" + lexical_cast<std::string>(r2) + ")"
             );
         }
     }

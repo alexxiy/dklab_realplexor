@@ -1,9 +1,9 @@
 <div id="TEST">
-    <?=basename($_SERVER['REQUEST_URI'])?>: incomplete response detection
+    <?php echo basename($_SERVER['REQUEST_URI']); ?>: incomplete response detection
 </div>
 
 
-<?include "contrib/init.php"?>
+<?php include 'contrib/init.php'; ?>
 <div id="FILE">
     <script>
     execute(function() {
@@ -15,8 +15,8 @@
         var func = function(r, id) {
             JsTest.write(id + ": callback called with data: \n" + r + "\n\n");
         };
-        realplexor._realplexor._error = function(prefix, msg) { JsTest.write(prefix + "\n" + msg + "\n\n"); }
-        realplexor._realplexor._log = function(msg) { JsTest.write(msg + "\n\n"); }
+        realplexor._loader._error = function(prefix, msg) { JsTest.write(prefix + "\n" + msg + "\n\n"); }
+        realplexor._loader._log = function(msg) { JsTest.write(msg + "\n\n"); }
         realplexor.setCursor('AAA', 5);
         realplexor.subscribe('AAA', func);
         realplexor.subscribe('BBB', func);
@@ -28,7 +28,7 @@
 
 
 <pre id="EXPECT">
-Request: /?identifier=5:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=5:AAA,BBB
 Received response:
 {}
 
@@ -40,5 +40,5 @@ Response:
 
 Next query in 10 ms
 
-Request: /?identifier=5:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=5:AAA,BBB
 </pre>

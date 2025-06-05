@@ -1,19 +1,19 @@
 <div id="TEST">
-    <?=basename($_SERVER['REQUEST_URI'])?>: abort() does not cause bounce
+    <?php echo basename($_SERVER['REQUEST_URI']); ?>: abort() does not cause bounce
 </div>
 
 
-<?include "contrib/init.php"?>
+<?php include 'contrib/init.php'; ?>
 <div id="FILE">
     <script>
     execute(function() {
         substituteResponse([
             [
-                { identifier: '10:AAA', data: "'bbb'" }
+                { identifier: '10:AAA', data: '"bbb"' }
             ]
         ]);
-        realplexor._realplexor._error = function(prefix, msg) { JsTest.write(prefix + "\n" + msg + "\n\n"); }
-        realplexor._realplexor._log = function(msg) { JsTest.write(msg + "\n\n"); }
+        realplexor._loader._error = function(prefix, msg) { JsTest.write(prefix + "\n" + msg + "\n\n"); }
+        realplexor._loader._log = function(msg) { JsTest.write(msg + "\n\n"); }
 
         realplexor.subscribe('AAA', function(r, id) {
             JsTest.write("Callback called for ID=" + id + ": \n" + r + "\n\n");
@@ -28,13 +28,13 @@
 
 
 <pre id="EXPECT">
-Request: /?identifier=AAA
-Request: /?identifier=AAA
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=AAA
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=AAA
 Received response:
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'bbb'
+    "ids": { "AAA": "10" },
+    "data": "bbb"
   }
 ]
 
@@ -44,4 +44,4 @@ bbb
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA

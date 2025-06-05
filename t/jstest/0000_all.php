@@ -1,7 +1,7 @@
 <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0">
 <tr height="1%">
     <td>
-        <?include "contrib/init.php"?>
+        <?php include 'contrib/init.php'; ?>
     <form enctype="multipart/form-data" id="form">
         <table border=0 cellpadding="0" cellspacing="0">
         <tr id="runAllButton"><td colspan="2">
@@ -15,7 +15,7 @@
         // (need time to initialize IFRAME).
         JsTest.analyzed = true; // workaround for init.php
         function runAllTests() {
-            <?
+            <?php
             $urls = array();
             foreach (glob('*.jst') as $v) {
                 $urls[] = preg_replace('{//+}s', '/', dirname($_SERVER['SCRIPT_NAME']) . "/$v" . (isset($_GET['debug'])? "?debug" : ''));
@@ -23,7 +23,7 @@
             ?>
             JsTestIterator.run(
                 window.frames.result,
-                <?=json_encode($urls)?>,
+                <?php echo json_encode($urls); ?>,
                 function(text) {
                     var form = document.getElementById('result_form');
                     form.result.value = text;

@@ -1,8 +1,10 @@
 #@
 #@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 #@ Author: Dmitry Koterov, dkLab (C)
-#@ GitHub: http://github.com/DmitryKoterov/
-#@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+#@ License: GPL 2.0
+#@
+#@ 2025-* Contributor: Alexxiy
+#@ GitHub: http://github.com/alexxiy/
 #@
 
 ##
@@ -21,8 +23,8 @@ my $root = dirname(dirname(dirname(abs_path(__FILE__))));
 
 #
 # Additional auto-generated parameters:
-# - IFRAME_CONTENT
-# - IFRAME_TIME
+# - SCRIPT_CONTENT
+# - SCRIPT_TIME
 #
 
 # Load config.
@@ -42,19 +44,21 @@ sub load {
         }
     }
     # Create custom properties.
-    foreach my $param ('IFRAME', 'SCRIPT') {
-        # Build IFRAME data.
-        my $fname = $CONFIG{"${param}_FILE"};
-        $fname = $root . "/" . $fname if $fname !~ m{^/}s;
-        open(local *F, $fname) or die "Cannot read $fname: $!\n";
+    # Build SCRIPT data.
+    my $fname = $CONFIG{SCRIPT_FILE};
+    $fname = $root . "/" . $fname if $fname !~ m{^/}s;
+    open(local *F, $fname) or die "Cannot read $fname: $!\n";
+    my $content;
+    {
         local $/;
-        my $content = <F>;
-        close(F);
-        $content =~ s{\$([a-z]\w*)}{defined $CONFIG{$1}? $CONFIG{$1} : "undefined-$1"}sgei;
-        # Assign additional parameters.
-        $CONFIG{"${param}_CONTENT"} = $content;
-        $CONFIG{"${param}_TIME"} = strftime("%a, %e %b %Y %H:%M:%S GMT", gmtime((stat $fname)[9]));
+        $content = <F>;
     }
+    close(F);
+    $content =~ s{\$([a-z]\w*)}{defined $CONFIG{$1}? $CONFIG{$1} : "undefined-$1"}sgei;
+    # Assign additional parameters.
+    $CONFIG{SCRIPT_CONTENT} = $content;
+    $CONFIG{SCRIPT_TIME} = strftime("%a, %e %b %Y %H:%M:%S GMT", gmtime((stat $fname)[9]));
+
     $CONFIG{USERS} = read_users($CONFIG{USERS_FILE});
 
 }

@@ -32,19 +32,35 @@ recv_wait();
 IN <== X-Realplexor: identifier=20:abc
 IN <==
 IN <== "ccc"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 7
 IN ==>
+IN ==> abc 20
 IN <== X-Realplexor: identifier=11:abc
 IN <==
 IN <== "aaa"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 7
 IN ==>
+IN ==> abc 11
 IN <== X-Realplexor: identifier=18:abc
 IN <==
 IN <== "ddd"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 7
 IN ==>
+IN ==> abc 18
 IN <== X-Realplexor: identifier=15:abc
 IN <==
 IN <== "bbb"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 7
 IN ==>
+IN ==> abc 15
 WA <-- identifier=10:abc
 WA --> HTTP/1.1 200 OK
 WA --> Connection: close

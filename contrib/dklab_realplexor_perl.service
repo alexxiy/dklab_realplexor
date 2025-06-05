@@ -1,0 +1,25 @@
+[Unit]
+Description=Dklab Realplexor longpoll server daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+PIDFile=/run/dklab_realplexor.pid
+ExecStart=/opt/dklab_realplexor/dklab_realplexor.pl /etc/dklab_realplexor.conf -p /run/dklab_realplexor.pid
+#ExecStop=/bin/kill -s SIGHUP $MAINPID
+
+# Send SIGHUP instead of SIGTERM on stop
+KillSignal=SIGTERM
+# Kill the main process only (not its children unless you want to)
+KillMode=process
+
+# Optional: give it time to shutdown
+TimeoutStopSec=10
+
+SuccessExitStatus=4
+
+PrivateTmp=false
+
+[Install]
+WantedBy=multi-user.target

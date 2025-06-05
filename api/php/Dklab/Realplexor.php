@@ -1,35 +1,33 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Dklab_Realplexor PHP API.
  *
- * @version 1.31
+ * @version 2.0
  */
 class Dklab_Realplexor
 {
-    private $_timeout = 5;
-    private $_host;
-    private $_port;
-    private $_identifier;
-    private $_login;
-    private $_password;
+    private int $timeout = 5;
+    private string $host;
+    private int $port;
+    private string $identifier;
+    private string $login;
+    private string $password;
+    private string $namespace;
 
     /**
-     * Create new realplexor API instance.
+     * Create new Realplexor API instance.
      *
      * @param string $host        Host of IN line.
-     * @param string $port        Port of IN line (if 443, SSL is used).
+     * @param integer $port       Port of IN line (if 443, SSL is used).
      * @param string $namespace   Namespace to use.
      * @param string $identifier  Use this "identifier" marker instead of the default one.
      */
-    public function __construct($host, $port, $namespace = null, $identifier = "identifier")
+    public function __construct(string $host, int $port, string $namespace = '', string $identifier = 'identifier')
     {
-        $this->_host = $host;
-        $this->_port = $port;
-        $this->_namespace = $namespace;
-        $this->_identifier = $identifier;
-        if (version_compare(PHP_VERSION, "5.2.1", "<")) {
-            throw new Dklab_Realplexor_Exception("You should use PHP 5.2.1 and higher to run this library");
-        }
+        $this->host = $host;
+        $this->port = $port;
+        $this->namespace = $namespace;
+        $this->identifier = $identifier;
     }
 
     /**
@@ -40,56 +38,74 @@ class Dklab_Realplexor
      * @param string $password
      * @return void
      */
-    public function logon($login, $password)
+    public function logon(string $login, string $password) : void
     {
-        $this->_login = $login;
-        $this->_password = $password;
+        $this->login = $login;
+        $this->password = $password;
         // All keys must always be login-prefixed!
-        $this->_namespace = $this->_login . "_" . $this->_namespace;
+        $this->namespace = $this->login . '_' . $this->namespace;
     }
 
     /**
      * Send data to realplexor.
-     * Throw Dklab_Realplexor_Exception in case of error.
+     * @throws Dklab_Realplexor_Exception in case of error.
      *
-     * @param mixed $idsAndCursors    Target IDs in form of: array(id1 => cursor1, id2 => cursor2, ...)
-     *                               of array(id1, id2, id3, ...). If sending to a single ID,
-     *                               you may pass it as a plain string, not array.
+     * @param array $idsAndCursors    Target IDs in form of: array(id1 => cursor1, id2 => cursor2, ...)
+     *                               of array(id1, id2, id3, ...).
      * @param mixed $data            Data to be sent (any format, e.g. nested arrays are OK).
      * @param array $showOnlyForIds  Send this message to only those who also listen any of these IDs.
      *                               This parameter may be used to limit the visibility to a closed
-     *                               number of cliens: give each client an unique ID and enumerate
-     *                               client IDs in $showOnlyForIds to not to send messages to others.
-     * @return void
+     *                               number of clients: give each client a unique ID and enumerate
+     *                               client IDs in $showOnlyForIds to not send messages to others.
+     * @return array                 If no cursor(s) provided, newly generated cursor(s) is(are) returned
+     *                               in form of: array(id1 => cursor1, id2 => cursor2, ...)
      */
-    public function send($idsAndCursors, $data, $showOnlyForIds = null)
+    public function send(array $idsAndCursors, mixed $data, array $showOnlyForIds = []) : array
     {
-        $data = json_encode($data);
-        $pairs = array();
-        foreach ((array)$idsAndCursors as $id => $cursor) {
+        try {
+            $data = json_encode($data, JSON_THROW_ON_ERROR);
+        } catch (Exception) {
+            throw new Dklab_Realplexor_Exception('Wrong input data is given');
+        }
+
+        $pairs = [];
+        foreach ($idsAndCursors as $id => $cursor) {
             if (is_int($id)) {
                 $id = $cursor; // this is NOT cursor, but ID!
                 $cursor = null;
             }
             if (!preg_match('/^\w+$/', $id)) {
-                throw new Dklab_Realplexor_Exception("Identifier must be alphanumeric, \"$id\" given");
+                throw new Dklab_Realplexor_Exception('Identifier must be alphanumeric, "' . $id . '" given');
             }
-            $id = $this->_namespace . $id;
+            $id = $this->namespace . $id;
             if ($cursor !== null) {
-                if (!is_numeric($cursor)) {
-                    throw new Dklab_Realplexor_Exception("Cursor must be numeric, \"$cursor\" given");
+                if (!is_int($cursor)) {
+                    throw new Dklab_Realplexor_Exception('Cursor must be integer, "' . $cursor . '" given');
                 }
-                $pairs[] = "$cursor:$id";
+                $pairs[] = $cursor . ':' . $id;
             } else {
                 $pairs[] = $id;
             }
         }
-        if (is_array($showOnlyForIds)) {
-            foreach ($showOnlyForIds as $id) {
-                $pairs[] = "*" . $this->_namespace . $id;
-            }
+        foreach ($showOnlyForIds as $id) {
+            $pairs[] = '*' . $this->namespace . $id;
         }
-        $this->_send(join(",", $pairs), $data);
+
+        $resp = $this->internalSend(implode(',', $pairs), $data);
+
+        // Parse the result and trim namespace.
+        $result = [];
+        foreach (explode("\n", $resp) as $line) {
+            @[$id, $cursor] = explode(' ', $line);
+            if ($id === '') {
+                continue;
+            }
+            if ($this->namespace !== '' && str_starts_with($id, $this->namespace)) {
+                $id = substr($id, strlen($this->namespace));
+            }
+            $result[$id] = (int)$cursor;
+        }
+        return $result;
     }
 
     /**
@@ -97,31 +113,38 @@ class Dklab_Realplexor
      * for each ID. (Now "online" means "connected just now", it is
      * very approximate; more precision is in TODO.)
      *
+     * @throws Dklab_Realplexor_Exception in case of error.
+     *
      * @param array $idPrefixes   If set, only online IDs with these prefixes are returned.
      * @return array              List of matched online IDs (keys) and online counters (values).
      */
-    public function cmdOnlineWithCounters($idPrefixes = null)
+    public function cmdOnlineWithCounters(array $idPrefixes = []) : array
     {
         // Add namespace.
-        $idPrefixes = $idPrefixes !== null? (array)$idPrefixes : array();
-        if (strlen($this->_namespace)) {
-            if (!$idPrefixes) $idPrefixes = array(""); // if no prefix passed, we still need namespace prefix
+        if ($this->namespace !== '') {
+            if ($idPrefixes === []) {
+                $idPrefixes = ['']; // if no prefix passed, we still need namespace prefix
+            }
             foreach ($idPrefixes as $i => $idp) {
-                $idPrefixes[$i] = $this->_namespace . $idp;
+                $idPrefixes[$i] = $this->namespace . $idp;
             }
         }
         // Send command.
-        $resp = $this->_sendCmd("online" . ($idPrefixes? " " . join(" ", $idPrefixes) : ""));
-        if (!strlen(trim($resp))) return array();
+        $resp = $this->sendCmd('online' . ($idPrefixes !== [] ? ' ' . implode(' ', $idPrefixes) : ''));
+        if (trim($resp) === '') {
+            return [];
+        }
         // Parse the result and trim namespace.
-        $result = array();
+        $result = [];
         foreach (explode("\n", $resp) as $line) {
-            @list ($id, $counter) = explode(" ", $line);
-            if (!strlen($id)) continue;
-            if (strlen($this->_namespace) && strpos($id, $this->_namespace) === 0) {
-                $id = substr($id, strlen($this->_namespace));
+            @[$id, $counter] = explode(' ', $line);
+            if ($id === '') {
+                continue;
             }
-            $result[$id] = $counter;
+            if ($this->namespace !== '' && str_starts_with($id, $this->namespace)) {
+                $id = substr($id, strlen($this->namespace));
+            }
+            $result[$id] = (int)$counter;
         }
         return $result;
     }
@@ -129,10 +152,12 @@ class Dklab_Realplexor
     /**
      * Return list of online IDs.
      *
+     * @throws Dklab_Realplexor_Exception in case of error.
+     *
      * @param array $idPrefixes   If set, only online IDs with these prefixes are returned.
      * @return array              List of matched online IDs.
      */
-    public function cmdOnline($idPrefixes = null)
+    public function cmdOnline(array $idPrefixes = []) : array
     {
         return array_keys($this->cmdOnlineWithCounters($idPrefixes));
     }
@@ -140,48 +165,49 @@ class Dklab_Realplexor
     /**
      * Return all Realplexor events (e.g. ID offline/offline changes)
      * happened after $fromPos cursor.
+     * @throws Dklab_Realplexor_Exception in case of error.
      *
-     * @param string $fromPos        Start watching from this cursor.
+     * @param integer $fromPos         Start watching from this cursor.
      * @param array $idPrefixes        Watch only changes of IDs with these prefixes.
      * @return array                   List of array("event" => ..., "cursor" => ..., "id" => ...).
      */
-    public function cmdWatch($fromPos, $idPrefixes = null)
+    public function cmdWatch(int $fromPos, array $idPrefixes = []) : array
     {
-        $idPrefixes = $idPrefixes !== null? (array)$idPrefixes : array();
-        if (!$fromPos) {
-            $fromPos = 0;
-        }
-        if (!preg_match('/^[\d.]+$/', $fromPos)) {
-            throw new Dklab_Realplexor_Exception("Position value must be numeric, \"$fromPos\" given");
+        if ($fromPos < 0) {
+            throw new Dklab_Realplexor_Exception('Position value must be positive integer, "' . $fromPos .  '" given');
         }
         // Add namespaces.
-        if (strlen($this->_namespace)) {
-            if (!$idPrefixes) $idPrefixes = array(""); // if no prefix passed, we still need namespace prefix
+        if ($this->namespace !== '') {
+            if ($idPrefixes === []) {
+                $idPrefixes = ['']; // if no prefix passed, we still need namespace prefix
+            }
             foreach ($idPrefixes as $i => $idp) {
-                $idPrefixes[$i] = $this->_namespace . $idp;
+                $idPrefixes[$i] = $this->namespace . $idp;
             }
         }
         // Execute.
-        $resp = $this->_sendCmd("watch $fromPos" . ($idPrefixes? " " . join(" ", $idPrefixes) : ""));
-        if (!trim($resp)) return array();
-        $resp = explode("\n", trim($resp));
+        $resp = $this->sendCmd('watch ' . $fromPos . ($idPrefixes !== [] ? ' ' . implode(' ', $idPrefixes) : ''));
+        $resp = trim($resp);
+        if ($resp === '') {
+            return [];
+        }
+        $resp = explode("\n", $resp);
         // Parse.
-        $events = array();
+        $events = [];
         foreach ($resp as $line) {
-            if (!preg_match('/^ (\w+) \s+ ([^:]+):(\S+) \s* $/sx', $line, $m)) {
-                trigger_error("Cannot parse the event: \"$line\"");
+            if (!preg_match('/^ (\w+) \s+ ([^:]+):(\S+) \s* $/x', $line, $m)) {
+                trigger_error('Cannot parse the event: "' . $line . '"');
                 continue;
             }
-            list ($event, $pos, $id) = array($m[1], $m[2], $m[3]);
-            // Cut off namespace.
-            if ($fromPos && strlen($this->_namespace) && strpos($id, $this->_namespace) === 0) {
-                $id = substr($id, strlen($this->_namespace));
+            [$event, $pos, $id] = [$m[1], (int)$m[2], $m[3]];
+            if ($fromPos > 0 && $this->namespace !== '' && str_starts_with($id, $this->namespace)) {
+                $id = substr($id, strlen($this->namespace));
             }
-            $events[] = array(
+            $events[] = [
                 'event' => $event,
                 'pos'   => $pos,
                 'id'    => $id,
-            );
+            ];
         }
         return $events;
     }
@@ -189,13 +215,14 @@ class Dklab_Realplexor
     /**
      * Internal method.
      * Send IN command.
+     * @throws Dklab_Realplexor_Exception in case of error.
      *
      * @param string $cmd   Command to send.
      * @return string       Server IN response.
      */
-    private function _sendCmd($cmd)
+    private function sendCmd(string $cmd) : string
     {
-        return $this->_send(null, "$cmd\n");
+        return $this->internalSend('', $cmd . "\n");
     }
 
     /**
@@ -203,83 +230,66 @@ class Dklab_Realplexor
      * Send specified data to IN channel. Return response data.
      * Throw Dklab_Realplexor_Exception in case of error.
      *
+     * @throws Dklab_Realplexor_Exception in case of error.
+     *
      * @param string $identifier  If set, pass this identifier string.
-     * @param string $data        Data to be sent.
+     * @param string $body        Data to be sent.
      * @return string             Response from IN line.
      */
-    private function _send($identifier, $body)
+    private function internalSend(string $identifier, string $body) : string
     {
         // Build HTTP request.
-        $headers = "X-Realplexor: {$this->_identifier}="
-            . ($this->_login? $this->_login . ":" . $this->_password . '@' : '')
-            . ($identifier? $identifier : "")
+        $headers = 'X-Realplexor: ' . $this->identifier . '='
+            . (isset($this->login) ? $this->login . ':' . $this->password . '@' : '')
+            . $identifier
             . "\r\n";
-        $data = ""
-            . "POST / HTTP/1.1\r\n"
-            . "Host: " . $this->_host . "\r\n"
-            . "Content-Length: " . $this->_strlen($body) . "\r\n"
+        $data = 'POST / HTTP/1.1' . "\r\n"
+            . 'Host: ' . $this->host . "\r\n"
+            . 'Content-Length: ' . mb_strlen($body) . "\r\n"
             . $headers
             . "\r\n"
             . $body;
+
         // Proceed with sending.
-        $old = ini_get('track_errors');
-        ini_set('track_errors', 1);
-        $result = null;
-        try {
-            $host = $this->_port == 443? "ssl://" . $this->_host : $this->_host;
-            $f = @fsockopen($host, $this->_port, $errno, $errstr, $this->_timeout);
-            if (!$f) {
-                throw new Dklab_Realplexor_Exception("Error #$errno: $errstr");
-            }
-            if (@fwrite($f, $data) === false) {
-                throw new Dklab_Realplexor_Exception($php_errormsg);
-            }
-            if (!@stream_socket_shutdown($f, STREAM_SHUT_WR)) {
-                throw new Dklab_Realplexor_Exception($php_errormsg);
-            }
-            $result = @stream_get_contents($f);
-            if ($result === false) {
-                throw new Dklab_Realplexor_Exception($php_errormsg);
-            }
-            if (!@fclose($f)) {
-                throw new Dklab_Realplexor_Exception($php_errormsg);
-            }
-            ini_set('track_errors', $old);
-        } catch (Exception $e) {
-            ini_set('track_errors', $old);
-            throw $e;
+        $host = $this->port === 443 ? 'ssl://' . $this->host : $this->host;
+        $f = @fsockopen($host, $this->port, $errno, $errstr, $this->timeout);
+        if (!$f) {
+            throw new Dklab_Realplexor_Exception('Error #' . $errno . ': ' . $errstr);
         }
+        if (@fwrite($f, $data) === false) {
+            throw new Dklab_Realplexor_Exception('Error #fwrite');
+        }
+        if (!@stream_socket_shutdown($f, STREAM_SHUT_WR)) {
+            throw new Dklab_Realplexor_Exception('Error #stream_socket_shutdown');
+        }
+        $result = @stream_get_contents($f);
+        if ($result === false) {
+            throw new Dklab_Realplexor_Exception('Error #stream_get_contents');
+        }
+        if (!@fclose($f)) {
+            throw new Dklab_Realplexor_Exception('Error #fclose');
+        }
+
         // Analyze the result.
         if ($result) {
-            @list ($headers, $body) = preg_split('/\r?\n\r?\n/s', $result, 2);
-            if (!preg_match('{^HTTP/[\d.]+ \s+ ((\d+) [^\r\n]*)}six', $headers, $m)) {
-                throw new Dklab_Realplexor_Exception("Non-HTTP response received:\n" . $result);
+            @[$headers, $body] = preg_split('/\r?\n\r?\n/', $result, 2);
+            if (!preg_match('{^HTTP/[\d.]+ \s+ ((\d+) [^\r\n]*)}ix', $headers, $m)) {
+                throw new Dklab_Realplexor_Exception('Non-HTTP response received:' . "\n" . $result);
             }
-            if ($m[2] != 200) {
-                throw new Dklab_Realplexor_Exception("Request failed: " . $m[1] . "\n" . $body);
+            if ((int)$m[2] !== 200) {
+                throw new Dklab_Realplexor_Exception('Request failed: ' . $m[1] . "\n" . $body);
             }
             if (!preg_match('/^Content-Length: \s* (\d+)/mix', $headers, $m)) {
-                throw new Dklab_Realplexor_Exception("No Content-Length header in response headers:\n" . $headers);
+                throw new Dklab_Realplexor_Exception('No Content-Length header in response headers:' . "\n" . $headers);
             }
-            $needLen = $m[1];
-            $recvLen = $this->_strlen($body);
-            if ($needLen != $recvLen) {
-                throw new Dklab_Realplexor_Exception("Response length ($recvLen) is different than specified in Content-Length header ($needLen): possibly broken response\n");
+            $needLen = (int)$m[1];
+            $recvLen = mb_strlen($body);
+            if ($needLen !== $recvLen) {
+                throw new Dklab_Realplexor_Exception('Response length (' . $recvLen . ') is different than specified in Content-Length header (' . $needLen . '): possibly broken response' . "\n");
             }
             return $body;
         }
         return $result;
-    }
-
-    /**
-     * Wrapper for mbstring-overloaded strlen().
-     *
-     * @param string $body
-     * @return int
-     */
-    private function _strlen($body)
-    {
-        return function_exists('mb_orig_strlen')? mb_orig_strlen($body) : strlen($body);
     }
 }
 

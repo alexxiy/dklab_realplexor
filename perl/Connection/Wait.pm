@@ -1,8 +1,10 @@
 #@
 #@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 #@ Author: Dmitry Koterov, dkLab (C)
-#@ GitHub: http://github.com/DmitryKoterov/
-#@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+#@ License: GPL 2.0
+#@
+#@ 2025-* Contributor: Alexxiy
+#@ GitHub: http://github.com/alexxiy/
 #@
 
 ##
@@ -52,12 +54,6 @@ sub onread {
     if (defined $pairs) {
         die "Empty identifier passed\n" if !@$pairs;
 
-        # Check if we have special marker: IFRAME.
-        if ($pairs->[0][1] eq $CONFIG{IFRAME_ID}) {
-            $self->debug("IFRAME marker received, sending content");
-            Realplexor::Common::send_static($self->fh, 'IFRAME', "text/html; charset=$CONFIG{CHARSET}");
-            return;
-        }
         # Check if we have special marker: SCRIPT.
         if ($pairs->[0][1] eq $CONFIG{SCRIPT_ID}) {
             $self->debug("SCRIPT marker received, sending content");

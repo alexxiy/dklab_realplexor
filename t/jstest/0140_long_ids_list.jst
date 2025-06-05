@@ -1,9 +1,9 @@
 <div id="TEST">
-    <?=basename($_SERVER['REQUEST_URI'])?>: success requests series
+    <?php echo basename($_SERVER['REQUEST_URI']); ?>: success requests series
 </div>
 
 
-<?include "contrib/init.php"?>
+<?php include 'contrib/init.php'; ?>
 <div id="FILE">
     <script>
     execute(function() {
@@ -22,6 +22,6 @@
 
 
 <pre id="EXPECT">
-Request: POST /
+Request: POST <?php echo REALPLEXOR_URL; ?>/
 POST data length: 3301
 </pre>

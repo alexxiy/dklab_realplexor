@@ -59,7 +59,7 @@ function start_realplexor()
 {
     global $REALPLEXOR_CONF, $OUT_TMP, $OUT_TMP_FH, $IS_BIN, $DEBUG;
     kill_realplexor();
-    $OUT_TMP = tempnam('non-existent', '');
+    $OUT_TMP = @tempnam('non-existent', '');
     if (pcntl_fork() == 0) {
         if (!$DEBUG) {
             $filter = '
@@ -200,7 +200,8 @@ function recv_wait()
     global $WAIT_SOCK;
     $ret = trim(stream_get_contents($WAIT_SOCK));
     $ret = preg_replace('/^((Last-Modified|Expires): )[^\r\n]+/m', '$1***', $ret);
-    $ret = preg_replace('/(: )"(\d\d\d\d\d+\.\d\d+)"/s', '${1}<cursor>', $ret);
+    //$ret = preg_replace('/(: )"(\d\d\d\d\d+\.\d\d+)"/s', '${1}<cursor>', $ret);
+    $ret = preg_replace('/(: )"(\b\d{18,}\b)"/s', '${1}<cursor>', $ret);
     echo add_prefix($ret, 'WA -->') . "\n";
     disconnect_wait(true);
 }

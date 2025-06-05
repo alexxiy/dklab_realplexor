@@ -24,11 +24,21 @@ expect('/is now offline/');
 IN <== X-Realplexor: identifier=2:abc,2:def
 IN <==
 IN <== "aaa"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 12
 IN ==>
+IN ==> abc 2
+IN ==> def 2
 IN <== X-Realplexor: identifier=2:abc,2:def
 IN <==
 IN <== "bbb"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 12
 IN ==>
+IN ==> abc 2
+IN ==> def 2
 WA <-- identifier=1:abc,1:def
 WA --> HTTP/1.1 200 OK
 WA --> Connection: close

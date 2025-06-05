@@ -1,12 +1,13 @@
-<?php
-require_once "_common.php";
+<?php declare(strict_types=1);
+
+require_once '_common.php';
 
 try {
     if (!empty($_POST['ids'])) {
         // Send data to the specified number of IDs.
-        $ids = explode(",", $_POST['ids']);
-        for ($i = 0; $i < max(@$_POST['repeat'], 1); $i++) {
-            $mpl->send($ids, $_POST['message'] . (@$_POST['repeat'] > 1? " #$i" : ""));
+        $ids = explode(',', $_POST['ids']);
+        for ($i = 0; $i < max($_POST['repeat'] ?? 0, 1); $i++) {
+            $mpl->send($ids, $_POST['message'] . ($_POST['repeat'] ?? 0 > 1? " #$i" : ""));
         }
     }
 } catch (Exception $e) {

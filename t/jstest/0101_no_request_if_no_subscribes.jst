@@ -1,15 +1,15 @@
 <div id="TEST">
-    <?=basename($_SERVER['REQUEST_URI'])?>: no HTTP request should be performed if no subscriptions
+    <?php echo basename($_SERVER['REQUEST_URI']); ?>: no HTTP request should be performed if no subscriptions
 </div>
 
 
-<?include "contrib/init.php"?>
+<?php include 'contrib/init.php'; ?>
 <div id="FILE">
     <script>
     execute(function() {
         substituteResponse([
             [
-                { identifier: '10:AAA', data: "'aaa'" },
+                { identifier: '10:AAA', data: '"aaa"' },
             ],
         ]);
         realplexor.execute();

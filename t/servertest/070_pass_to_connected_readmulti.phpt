@@ -14,12 +14,16 @@ send_in("identifier=def", "
 recv_wait();
 
 ?>
---EXPECT--
+--EXPECTF--
 WA <-- identifier=abc,def
 IN <== X-Realplexor: identifier=def
 IN <==
 IN <== "aaa"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: %d
 IN ==>
+IN ==> def %d
 WA --> HTTP/1.1 200 OK
 WA --> Connection: close
 WA --> Cache-Control: no-store, no-cache, must-revalidate

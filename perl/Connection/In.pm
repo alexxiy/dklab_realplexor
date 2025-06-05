@@ -1,8 +1,10 @@
 #@
 #@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 #@ Author: Dmitry Koterov, dkLab (C)
-#@ GitHub: http://github.com/DmitryKoterov/
-#@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+#@ License: GPL 2.0
+#@
+#@ 2025-* Contributor: Alexxiy
+#@ GitHub: http://github.com/alexxiy/
 #@
 
 ##
@@ -149,6 +151,7 @@ sub try_process_pairs {
         }
         my $login = $self->{cred}? $self->{cred}[0] : undef;
         my @ids_to_process = ();
+        my @lines = ();
         foreach my $pair (@$pairs) {
             my ($cursor, $id) = @$pair;
             # Check if it is not own pair.
@@ -164,11 +167,16 @@ sub try_process_pairs {
                 $data_to_send->clear_id($id);
                 Realplexor::Common::logger("[$id] cleaned, because no data is pushed within last $timeout seconds");
             });
+            # collect id + cursor for the output
+            push @lines, "$id $cursor\n";
         }
         # One debug message per connection.
         $self->debug("added data for [" . join(",", @ids_to_process). "]") if @ids_to_process;
         # Send pending data.
         Realplexor::Common::send_pendings(\@ids_to_process);
+
+        # return passed or newly created cursor(s) of the event
+        $self->_send_response(join("", @lines));
     }
 }
 

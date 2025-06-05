@@ -1,8 +1,10 @@
 #@
 #@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 #@ Author: Dmitry Koterov, dkLab (C)
-#@ GitHub: http://github.com/DmitryKoterov/
-#@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+#@ License: GPL 2.0
+#@
+#@ 2025-* Contributor: Alexxiy
+#@ GitHub: http://github.com/alexxiy/
 #@
 
 ##
@@ -24,14 +26,11 @@ my $time_counter = 0;
 # standard double is not enough to differ sequential calls of
 # this function.
 sub time_hi_res {
-    my $time = new Math::BigFloat(Time::HiRes::time());
-    $time->precision(-14); # number of digits after "."
-#   my $time = Time::HiRes::time();  # Using double instead of BigFloat increases performance a little: 256 -> 282 rps
+    my $time = int(new Math::BigFloat(Time::HiRes::time()) * 10000);
     my $cycle = 1000;
     $time_counter++;
     $time_counter = 0 if $time_counter > $cycle;
-    my $add = (1.0 / $cycle) * $time_counter * 0.000001;
-    return $time + $add;
+    return ($time * 10000) + $time_counter;
 }
 
 # Rerun the script unlimited.

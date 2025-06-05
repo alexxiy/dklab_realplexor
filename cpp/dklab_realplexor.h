@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -34,7 +36,7 @@ typedef std::shared_ptr<Realplexor::Event::FH> fh_t;
 typedef void (*logger_t)(const string&);
 
 // Cursor (precise).
-typedef long double cursor_t;
+typedef unsigned long int cursor_t;
 
 // Identifier (channel name).
 typedef string ident_t;
@@ -80,7 +82,7 @@ struct DataEvent {
     DataEvent() {}
     DataEvent(cursor_t cursor, DataEventType type, ident_t id): cursor(cursor), type(type), id(id) {}
 
-    string getType()
+    std::string getType() const
     {
         if (type == DataEventType::ONLINE) return "online";
         if (type == DataEventType::OFFLINE) return "offline";
@@ -124,24 +126,6 @@ private:
 };
 typedef map<const string*, DataToSendChunk> DataToSendByDataRef;
 typedef map<const fh_t::element_type*, DataToSendByDataRef> DataToSendByFh;
-
-string cursor_to_string(cursor_t cur)
-{
-    // 16 digits is for full phpt-tests compatibility with Perl version
-    string v = format("%0.14LF", cur);
-    // Make the value 100%-compatible with Perl version.
-    auto point = v.find(".");
-    if (point != v.npos) {
-        for (size_t i = point + 1; i < v.length(); i++) {
-            // If we have at least one non-zero after the '.' char,
-            // return 14-digit version.
-            if (v[i] != '0') return v;
-        }
-        // We have a true decimal value, skip the point and all digits after it.
-        v.erase(point);
-    }
-    return v;
-}
 
 };
 #endif

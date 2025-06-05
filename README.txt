@@ -1,8 +1,10 @@
 #@
 #@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 #@ Author: Dmitry Koterov, dkLab (C)
-#@ GitHub: http://github.com/DmitryKoterov/
-#@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+#@ License: GPL 2.0
+#@
+#@ 2025-* Contributor: Alexxiy
+#@ GitHub: http://github.com/alexxiy/
 #@
 
 BUILD A BINARY FROM C++ SOURCES
@@ -13,8 +15,8 @@ same (shared) smoke tests code:
 
 1. Perl version: treated as a prototype and development/debugging playground.
    It's quite slow and is not recommended in production.
-2. C++ version: fast, but you should build it by yourself from sources
-   (it's quite easy in Ubuntu 12.04), see cpp/ directory.
+2. C++ version: fast, but you should build it by yourself from sources,
+   see cpp/ directory.
 
 When you build a binary version of Realplexor, the binary is put to the current
 directory; it will be used instead of Perl version automatically.
@@ -31,8 +33,10 @@ are not known to be supported.
 
 1. If you decide to use a Perl version, run ./dklab_realplexor.pl manually
    and check that all needed libraries are installed. If not, install them:
-   - For RHEL (RedHat, CentOS):
-     # yum install gcc
+   - For RHEL (RedHat, CentOS, Fedora) - modern way, just packets:
+     # dnf install perl-EV perl-Time-HiRes perl-Math-BigInt perl-FindBin perl-sigtrap
+   - For RHEL (RedHat, CentOS, Fedora) - manually compilation of EV and dependent perl libs:
+     # dnf install gcc perl-CPAN
      # perl -MCPAN -e "install EV"
    - For Debian (or Ubuntu):
      # apt-get install gcc
@@ -57,13 +61,18 @@ are not known to be supported.
    # ln -s /path/to/your/config.conf /etc/dklab_realplexor.conf
 
 4. Use bundled init-script to start Realplexor as a Linux service:
-   # ln -s /opt/dklab_realplexor/dklab_realplexor.init /etc/init.d/dklab_realplexor
+   # ln -s /opt/dklab_realplexor/contrib/dklab_realplexor.init /etc/init.d/dklab_realplexor
+   Or for Systemd:
+   # ln -s /opt/dklab_realplexor/contrib/dklab_realplexor.service /lib/systemd/system/dklab_realplexor.service
 
 5. Tell your system to start Realplexor at boot:
-   - For RHEL (RedHat, CentOS):
+   - For Systemd (modern RHEL, CentOS, Fedora, Ubuntu, Debian etc.):
+     # systemctl enable dklab_realplexor
+     # systemctl start dklab_realplexor
+   - For old init.d for RHEL (RedHat, CentOS):
      # chkconfig --add dklab_realplexor
      # chkconfig dklab_realplexor on
-   - For Debian (or Ubuntu):
+   - For old rc.d Debian (or Ubuntu):
      # update-rc.d dklab_realplexor defaults
      # update-rc.d dklab_realplexor start
 
@@ -115,6 +124,20 @@ events
 
 CHANGELOG
 ---------
+
+* Dklab Realplexor 2025-06-05: v2.0
+  - [NEW] GCC 15.1 compatibility (compilation tested on Fedora 42, the latest on the moment),
+          successful compilation against c++23 standards.
+  - [NEW] Due to rounding issues with float-typed cursor, it was changed to INT:
+          Example: 174860736061360005
+                   [    A   ][B ][C ]
+          A - timestamp, B - 1/10000 of second, C - event counter
+  - [BUG] Fixed notify in Events.h(.pm): increment issue caused 'watch' consistency break for the first new event
+  - [NEW] Fully rewritten PHP (tested on 8.4, strict types) and Python (tested on 3.13) API connectors.
+          Method "send" now returns passed or newly created cursor(s) for destination ID(s).
+  - [NEW] Got rid of IFRAME due to cross-frame limitations in modern browsers (see t/demo/README.txt)
+  - [NEW] Add Systemd service unit, nginx config examples (see in contrib/)
+  - [MIN] Updated autotests, demo
 
 * Dklab Realplexor 2014-01-14: v1.41
   - [MIN] Brushed up C++ version, Ubuntu 12.04 build instructions.

@@ -15,15 +15,19 @@ send_in(null, "stats");
 
 
 ?>
---EXPECT--
+--EXPECTF--
 IN <== X-Realplexor: identifier=abc
 IN <==
 IN <== "a"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 23
 IN ==>
+IN ==> abc %d
 IN <== stats
 IN ==> HTTP/1.0 200 OK
 IN ==> Content-Type: text/plain
-IN ==> Content-Length: 138
+IN ==> Content-Length: 131
 IN ==>
 IN ==> [data_to_send]
 IN ==> abc => [*: 3b]

@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -91,10 +93,10 @@ public:
                 lastAddr = addr;
                 events.push_back(add_listen(addr));
             }
-        } catch (runtime_error e) {
+        } catch (runtime_error& e) {
             events.clear();
             die(lastAddr + ": " + e.what());
-        } catch (exception e) {
+        } catch (exception& e) {
             events.clear();
             die(lastAddr + ": unknown exception");
         }

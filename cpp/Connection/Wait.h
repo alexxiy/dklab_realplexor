@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -63,13 +65,6 @@ public:
         if (Realplexor::Common::extract_pairs(rdata, *pairs, limit_ids, cred)) {
             if (!pairs->size()) throw runtime_error("Empty identifier passed");
 
-            // Check if we have special marker: IFRAME.
-            if (pairs->begin()->id == CONFIG.iframe_id) {
-                pairs->clear();
-                DEBUG("IFRAME marker received, sending content");
-                Realplexor::Common::send_static(fh(), CONFIG.static_iframe.content, CONFIG.static_iframe.time, "text/html; charset=" + CONFIG.charset);
-                return;
-            }
             // Check if we have special marker: SCRIPT.
             if (pairs->begin()->id == CONFIG.script_id) {
                 pairs->clear();

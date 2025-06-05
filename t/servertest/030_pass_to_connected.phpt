@@ -17,7 +17,7 @@ recv_wait();
 expect('/is now offline/');
 
 ?>
---EXPECT--
+--EXPECTF--
 # Starting.
 #   [pairs_by_fhs=0 data_to_send=0 connected_fhs=0 online_timers=0 cleanup_timers=0 events=*]
 # CONFIG: appending configuration from ***
@@ -33,7 +33,7 @@ WA <-- identifier=abc
 #   [pairs_by_fhs=0 data_to_send=0 connected_fhs=0 online_timers=0 cleanup_timers=0 events=*]
 # WAIT: DEBUG: read <N> bytes
 #   [pairs_by_fhs=0 data_to_send=0 connected_fhs=0 online_timers=0 cleanup_timers=0 events=*]
-# WAIT: DEBUG: [*:abc] registered
+# WAIT: DEBUG: [%d:abc] registered
 #   [pairs_by_fhs=1 data_to_send=0 connected_fhs=1 online_timers=1 cleanup_timers=0 events=*]
 IN <== X-Realplexor: identifier=abc
 IN <==
@@ -50,9 +50,13 @@ IN <== "aaa"
 #   [pairs_by_fhs=0 data_to_send=1 connected_fhs=0 online_timers=1 cleanup_timers=1 events=*]
 # IN: DEBUG: connection closed
 #   [pairs_by_fhs=0 data_to_send=1 connected_fhs=0 online_timers=1 cleanup_timers=1 events=*]
-# WAIT: DEBUG: [*:abc] connection closed
+# WAIT: DEBUG: [%d:abc] connection closed
 #   [pairs_by_fhs=0 data_to_send=1 connected_fhs=0 online_timers=1 cleanup_timers=1 events=*]
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: %d
 IN ==>
+IN ==> abc %d
 WA --> HTTP/1.1 200 OK
 WA --> Connection: close
 WA --> Cache-Control: no-store, no-cache, must-revalidate

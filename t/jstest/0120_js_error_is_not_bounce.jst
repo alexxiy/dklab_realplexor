@@ -1,9 +1,9 @@
 <div id="TEST">
-    <?=basename($_SERVER['REQUEST_URI'])?>: JS callback error is not bounce
+    <?php echo basename($_SERVER['REQUEST_URI']); ?>: JS callback error is not bounce
 </div>
 
 
-<?include "contrib/init.php"?>
+<?php include 'contrib/init.php'; ?>
 <div id="FILE">
     <script>
     execute(function() {
@@ -11,15 +11,15 @@
         // Last message must be "Next query in 10 ms" (after 11 requests),
         // because JS callback error is NOT a bounce.
         for (var i = 0; i < 11; i++) {
-            resps.push([ { identifier: '10:AAA', data: "'aaa'" } ]);
+            resps.push([ { identifier: '10:AAA', data: '"aaa"' } ]);
         }
         substituteResponse(resps);
         var func = function(r, id) {
             JsTest.write(id + ": callback called with data: \n" + r + "\n\n");
             throw "Error emulation!";
         };
-        realplexor._realplexor._error = function(prefix, msg) { JsTest.write(prefix + "\n" + msg + "\n\n"); }
-        realplexor._realplexor._log = function(msg) { JsTest.write(msg + "\n\n"); }
+        realplexor._loader._error = function(prefix, msg) { JsTest.write(prefix + "\n" + msg + "\n\n"); }
+        realplexor._loader._log = function(msg) { JsTest.write(msg + "\n\n"); }
         realplexor.setCursor('AAA', 5);
         realplexor.subscribe('AAA', func);
         realplexor.subscribe('BBB', func);
@@ -31,13 +31,13 @@
 
 
 <pre id="EXPECT">
-Request: /?identifier=5:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=5:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -51,13 +51,13 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -71,13 +71,13 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -91,13 +91,13 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -111,13 +111,13 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -131,13 +131,13 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -151,13 +151,13 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -171,13 +171,13 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -191,13 +191,13 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -211,13 +211,13 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -231,13 +231,13 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 Received response:
 
 [
   {
-    "ids": { "AAA": 10 },
-    "data": 'aaa'
+    "ids": { "AAA": "10" },
+    "data": "aaa"
   }
 ]
 
@@ -251,5 +251,5 @@ aaa
 
 Next query in 10 ms
 
-Request: /?identifier=10:AAA,BBB
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA,BBB
 </pre>

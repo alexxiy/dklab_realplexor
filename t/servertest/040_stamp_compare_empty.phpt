@@ -22,16 +22,24 @@ recv_wait();
 
 
 ?>
---EXPECT--
+--EXPECTF--
 IN <== X-Realplexor: identifier=5:abc
 IN <==
 IN <== "aaa"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: %d
 IN ==>
+IN ==> abc 5
 WA <-- identifier=10:abc
 IN <== X-Realplexor: identifier=6:abc
 IN <==
 IN <== "aaa"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: %d
 IN ==>
+IN ==> abc 6
 WA --> HTTP/1.1 200 OK
 WA --> Connection: close
 WA --> Cache-Control: no-store, no-cache, must-revalidate

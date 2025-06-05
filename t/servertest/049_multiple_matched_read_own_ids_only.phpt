@@ -19,7 +19,13 @@ recv_wait();
 IN <== X-Realplexor: identifier=20:abc,30:def,40:ghi
 IN <==
 IN <== "ccc"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 21
 IN ==>
+IN ==> abc 20
+IN ==> def 30
+IN ==> ghi 40
 WA <-- identifier=10:abc,20:def
 WA --> HTTP/1.1 200 OK
 WA --> Connection: close

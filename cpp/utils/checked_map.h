@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -46,7 +48,7 @@ public:
     {
         try {
             return lexical_cast<T>(get(k));
-        } catch (bad_lexical_cast e) {
+        } catch (bad_lexical_cast& e) {
             throw out_of_range("Error while casting of the key " + k + " presented in " + name);
         }
     }

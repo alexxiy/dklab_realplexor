@@ -1,26 +1,26 @@
 <div id="TEST">
-    <?=basename($_SERVER['REQUEST_URI'])?>: success requests series
+    <?php echo basename($_SERVER['REQUEST_URI']); ?>: success requests series
 </div>
 
 
-<?include "contrib/init.php"?>
+<?php include 'contrib/init.php'; ?>
 <div id="FILE">
     <script>
     execute(function() {
         substituteResponse([
             [
-                { identifier: '10:AAA', data: "'aaa'" },
-                { identifier: '10:AAA', data: "'bbb'" }
+                { identifier: '10:AAA', data: '"aaa"' },
+                { identifier: '10:AAA', data: '"bbb"' }
             ],
             [
-                { identifier: '20:AAA', data: "'ccc'" },
-                { identifier: '20:AAA', data: "'ddd'" }
+                { identifier: '20:AAA', data: '"ccc"' },
+                { identifier: '20:AAA', data: '"ddd"' }
             ],
             // JS part does not filter responses by cursors, so the
             // following responses will be received too.
             [
-                { identifier: '10:AAA', data: "'xxx'" },
-                { identifier: '10:AAA', data: "'yyy'" }
+                { identifier: '10:AAA', data: '"xxx"' },
+                { identifier: '10:AAA', data: '"yyy"' }
             ]
         ]);
         realplexor.subscribe('AAA', function(r, id) {
@@ -34,26 +34,26 @@
 
 
 <pre id="EXPECT">
-Request: /?identifier=AAA
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=AAA
 Callback called for ID=AAA:
 aaa
 
 Callback called for ID=AAA:
 bbb
 
-Request: /?identifier=10:AAA
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA
 Callback called for ID=AAA:
 ccc
 
 Callback called for ID=AAA:
 ddd
 
-Request: /?identifier=20:AAA
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=20:AAA
 Callback called for ID=AAA:
 xxx
 
 Callback called for ID=AAA:
 yyy
 
-Request: /?identifier=10:AAA
+Request: <?php echo REALPLEXOR_URL; ?>/?identifier=10:AAA
 </pre>

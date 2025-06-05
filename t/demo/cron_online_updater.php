@@ -1,4 +1,5 @@
-<?php
+<?php declare(strict_types=1);
+
 ini_set("display_errors", 1);
 require_once "_common.php";
 
@@ -7,7 +8,7 @@ while (1) {
         echo "Fetching initial statuses...\n";
         $online = array_flip($mpl->cmdOnline());
         echo "Fetched initial " . count($online) . " statuses\n";
-        $mpl->send("who_is_online", array_keys($online));
+        $mpl->send(['who_is_online'], array_keys($online));
 
         $pos = 0;
         while (1) {
@@ -24,7 +25,7 @@ while (1) {
                 $read = true;
             }
             if ($read) {
-                $mpl->send("who_is_online", array_keys($online));
+                $mpl->send(['who_is_online'], array_keys($online));
             }
             sleep(1);
         }

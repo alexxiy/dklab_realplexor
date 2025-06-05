@@ -1,13 +1,14 @@
 import socket
 import json
 import re
+from typing import Union, Optional, List, Dict
 
-class Dklab_Realplexor(object):
-    """  Dklab_Realplexor python API. """
+class Dklab_Realplexor:
+    """Dklab_Realplexor python API v2.0."""
 
-    def __init__(self, host, port, namespace=None, identifier='identifier'):
+    def __init__(self, host: str, port: int, namespace: str = '', identifier: str = 'identifier'):
         """
-        Create new realplexor API instance.
+        Create new Realplexor API instance.
 
         Keyword arguments:
         host -- Host of IN line.
@@ -15,15 +16,15 @@ class Dklab_Realplexor(object):
         namespace -- Namespace to use.
         identifier -- Use this "identifier" marker instead of the default one.
         """
-        self._login = None
-        self._password = None
-        self._timeout = 5
-        self._host = host
-        self._port = port
-        self._namespace = namespace
-        self._identifier = identifier
+        self._login: Optional[str] = None
+        self._password: Optional[str] = None
+        self._timeout: int = 5
+        self._host: str = host
+        self._port: int = port
+        self._namespace: str = namespace
+        self._identifier: str = identifier
 
-    def logon(self, login, password):
+    def logon(self, login: str, password: str) -> None:
         """
         Set login and password to access Realplexor (if the server needs it).
         This method does not check credentials correctness.
@@ -31,49 +32,69 @@ class Dklab_Realplexor(object):
         self._login = login
         self._password = password
         # All keys must always be login-prefixed!
-        self._namespace = self._login + "_" + self._namespace
+        self._namespace = f"{login}_{self._namespace}"
 
-    def send(self, idsAndCursors, data, showOnlyForIds=None):
+    def send(
+            self,
+            ids_and_cursors: Union[List[str], Dict[str, Union[int, None]]],
+            data: dict,
+            show_only_for_ids: Optional[List[str]] = None
+    ) -> Dict[str, int]:
         """
         Send data to realplexor.
         Throw Dklab_Realplexor_Exception in case of error.
 
-        idsAndCursors -- Target IDs in form of: dictionary(id1 => cursor1, id2 => cursor2, ...)
-                                     of dictionary(id1, id2, id3, ...). If sending to a single ID,
-                                     you may pass it as a plain string, not dictionary.
+        idsAndCursors -- Target IDs in form of: dictionary(id1 => cursor1, id2 => cursor2, id3 => None...)
+                                     of list[id1, id2, id3, ...].
         data -- Data to be sent (any format, e.g. nested dictionaries are OK).
         showOnlyForIds  -- Send this message to only those who also listen any of these IDs.
                                      This parameter may be used to limit the visibility to a closed
-                                     number of cliens: give each client an unique ID and enumerate
-                                     client IDs in $showOnlyForIds to not to send messages to others.
+                                     number of clients: give each client a unique ID and enumerate
+                                     client IDs in $showOnlyForIds to not send messages to others.
         """
-        data = json.dumps(data)
+        payload = json.dumps(data)
         pairs = []
-        for id in idsAndCursors:
-            if type(id) == type(1):
-                id = cursor # this is NOT cursor, but ID!
-                cursor = None
-            if re.search('^\w+$', id) is None:
-                raise Dklab_Realplexor_Exception("Identifier must be alphanumeric, \"%s\" given" % id)
-            try:
-                cursor = idsAndCursors[id]
-            except:
-                cursor = None
-            id = (self._namespace or '') + id
-            if cursor is not None:
-                try:
-                    i = float(cursor)
-                except ValueError:
-                    raise Dklab_Realplexor_Exception("Cursor must be numeric, \"%s\" given" % cursor)
-                pairs.append("%s:%s" % (cursor,id))
-            else:
-                pairs.append(id)
-        if isinstance(showOnlyForIds, (list, tuple)):
-            for id in showOnlyForIds:
-                pairs.append("*" + (self._namespace or '') + id)
-        self._send(",".join(pairs), data)
 
-    def cmdOnlineWithCounters(self, idPrefixes=None):
+        if isinstance(ids_and_cursors, list):
+            # List of ID strings
+            ids_and_cursors = {id_: None for id_ in ids_and_cursors}
+        elif not isinstance(ids_and_cursors, dict):
+            raise Dklab_Realplexor_Exception("ids_and_cursors must be a list of strings or a dict of id => cursor")
+
+        for id_, cursor in ids_and_cursors.items():
+            if not re.fullmatch(r"\w+", id_):
+                raise Dklab_Realplexor_Exception(f"Identifier must be alphanumeric, \"{id_}\" given")
+
+            full_id = f"{self._namespace or ''}{id_}"
+
+            if cursor is not None:
+                if not isinstance(cursor, int):
+                    raise Dklab_Realplexor_Exception(f"Cursor must be an integer, \"{cursor}\" given")
+                pairs.append(f"{cursor}:{full_id}")
+            else:
+                pairs.append(full_id)
+
+        if show_only_for_ids:
+            pairs += [f"*{self._namespace or ''}{id_}" for id_ in show_only_for_ids]
+
+        resp = self._send(",".join(pairs), payload)
+        if not resp.strip():
+            return {}
+
+        # Parse the result and trim namespace.
+        result = {}
+        for line in resp.strip().splitlines():
+            try:
+                id_, cursor = line.strip().split()
+                if self._namespace and id_.startswith(self._namespace):
+                    id_ = id_.removeprefix(self._namespace)
+                result[id_] = int(cursor)
+            except ValueError:
+                continue
+
+        return result
+
+    def cmdOnlineWithCounters(self, id_prefixes: Optional[List[str]] = None) -> Dict[str, str]:
         """
         Return list of online IDs (keys) and number of online browsers
         for each ID. (Now "online" means "connected just now", it is
@@ -82,38 +103,39 @@ class Dklab_Realplexor(object):
         idPrefixes -- If set, only online IDs with these prefixes are returned.
         """
         # Add namespace.
-        idPrefixes = [] if idPrefixes is None else list(idPrefixes)
+        if id_prefixes is None:
+            id_prefixes = []
+
         if self._namespace:
-            if not idPrefixes:
-                idPrefixes = [""] # if no prefix passed, we still need namespace prefix
-            idPrefixes = [self._namespace + (value or "") for value in idPrefixes]
+            id_prefixes = [f"{self._namespace}{prefix or ''}" for prefix in (id_prefixes or [""])]
+
         # Send command.
-        resp = self._sendCmd("online" + (" " + " ".join(idPrefixes) if idPrefixes else ""))
+        resp = self._sendCmd("online" + (" " + " ".join(id_prefixes) if id_prefixes else ""))
         if not resp.strip():
             return {}
+
         # Parse the result and trim namespace.
         result = {}
-        for line in resp.split("\n"):
+        for line in resp.strip().splitlines():
             try:
-                id, counter = tuple(line.split(" "))
-            except:
+                id_, counter = line.strip().split()
+                if self._namespace and id_.startswith(self._namespace):
+                    id_ = id_.removeprefix(self._namespace)
+                result[id_] = int(counter)
+            except ValueError:
                 continue
-            if not id:
-                continue
-            if self._namespace and id.startswith(self._namespace):
-                id = id[len(self._namespace):]
-            result[id] = counter
+
         return result
 
-    def cmdOnline(self, idPrefixes=None):
+    def cmdOnline(self, id_prefixes: Optional[List[str]] = None) -> List[str]:
         """
         Return list of online IDs.
 
         idPrefixes --  If set, only online IDs with these prefixes are returned.
         """
-        return self.cmdOnlineWithCounters(idPrefixes).keys()
+        return list(self.cmdOnlineWithCounters(id_prefixes).keys())
 
-    def cmdWatch(self, fromPos, idPrefixes=None):
+    def cmdWatch(self, from_pos: int, id_prefixes: Optional[List[str]] = None) -> List[dict]:
         """
         Return all Realplexor events (e.g. ID offline/offline changes)
         happened after fromPos cursor.
@@ -122,45 +144,35 @@ class Dklab_Realplexor(object):
         idPrefixes -- Watch only changes of IDs with these prefixes.
         Returns list of dict("event": ..., "pos": ..., "id": ...).
         """
-        idPrefixes = [] if idPrefixes is None else list(idPrefixes)
-        if not fromPos:
-            fromPos = 0
-        if not re.match('^[\d.]+$', fromPos.__str__()):
-            raise Dklab_Realplexor_Exception("Position value must be numeric, \"%s\" given" % fromPos)
+        id_prefixes = id_prefixes or []
+
+        if not re.fullmatch(r"[\d]+", str(from_pos)):
+            raise Dklab_Realplexor_Exception(f"Position value must be integer, \"{from_pos}\" given")
+
         # Add namespaces.
         if self._namespace:
-            if not idPrefixes:
-                idPrefixes = [""] # if no prefix passed, we still need namespace prefix
-            idPrefixes = [self._namespace + (value or "") for value in idPrefixes]
+            id_prefixes = [f"{self._namespace}{prefix or ''}" for prefix in (id_prefixes or [""])]
+
         # Execute.
-        resp = self._sendCmd(("watch %s " % fromPos) + (" ".join(idPrefixes) if idPrefixes else ""))
+        resp = self._sendCmd(f"watch {from_pos} {' '.join(id_prefixes)}")
         if not resp.strip():
             return []
+
         # Parse.
         events = []
-        for line in resp.strip().split("\n"):
-            m = re.match('^(\w+)\s+([^:]+):(\S+)\s*$', line)
-            if not m:
-                # Cannot parse the event
-                continue
-            event, pos, id = m.group(1), m.group(2), m.group(3)
-            # Cut off namespace.
-            if fromPos and self._namespace and id.startswith(self._namespace):
-                id = id[len(self._namespace):]
-            events.append(dict(event=event, pos=pos, id=id))
+        for line in resp.strip().splitlines():
+            m = re.match(r'^(\w+)\s+([^:]+):(\S+)\s*$', line)
+            if m:
+                event, pos, id_ = m.groups()
+                if self._namespace and id_.startswith(self._namespace):
+                    id_ = id_.removeprefix(self._namespace)
+                events.append({"event": event, "pos": int(pos), "id": id_})
         return events
 
-    def _sendCmd(self, cmd):
-        """
-        Internal method.
-        Send IN command.
+    def _sendCmd(self, cmd: str) -> str:
+        return self._send(None, f"{cmd}\n")
 
-        cmd -- Command to send.
-        Returns server IN response.
-        """
-        return self._send(None, cmd + "\n")
-
-    def _send(self, identifier, body):
+    def _send(self, identifier: Optional[str], body: str) -> str:
         """
         Internal method.
         Send specified data to IN channel. Return response data.
@@ -173,53 +185,59 @@ class Dklab_Realplexor(object):
          Returns response from IN line.
          """
         # Build HTTP request.
-        headers = "X-Realplexor: %s=" % self._identifier
+        headers = f"X-Realplexor: {self._identifier}="
         if self._login:
-            header += self._login + ':' + self._password + '@'
-        headers += (identifier or '') + "\r\n"
+            headers += f"{self._login}:{self._password}@"
+        headers += f"{identifier or ''}\r\n"
 
-        data = "POST / HTTP/1.1\r\nHost: %s\r\nContent-Length: %i\r\n%s\r\n%s\r\n" % (
-                        self._host, len(body), headers, body)
+        request = (
+            f"POST / HTTP/1.1\r\n"
+            f"Host: {self._host}\r\n"
+            f"Content-Length: {len(body)}\r\n"
+            f"{headers}\r\n"
+            f"{body}"
+        )
+
         # Proceed with sending.
-        result = None
-        host = "ssl://" + self._host if self._port == 443 else  self._host
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(self._timeout)
-        try:
-            s.connect((host, int(self._port)))
-            s.sendall(data)
+        result = b''
+        host = self._host
+        if self._port == 443:
+            host = f"ssl://{self._host}"
+
+        with socket.create_connection((self._host, self._port), timeout=self._timeout) as s:
+            s.sendall(request.encode())
             s.shutdown(socket.SHUT_WR)
-            result = ''
-            while True:
-                tmp = s.recv(4096)
-                if not tmp:
-                    break
-                result += tmp
-            s.close()
-        except Exception as e:
-            raise Dklab_Realplexor_Exception(e)
+            while chunk := s.recv(4096):
+                result += chunk
+
+        result_str = result.decode()
         # Analyze the result.
-        if result:
-            regexp = re.compile("\r?\n\r?\n", re.S)
+        if result_str:
             try:
-                headers, body = tuple(re.split(regexp, result, 2))
-            except:
-                raise Dklab_Realplexor_Exception("Non-HTTP response received:\n" + result)
-            m = re.match('^HTTP/[\d.]+\s+((\d+)[^\r\n]*)', headers)
+                headers, body = re.split(r"\r?\n\r?\n", result_str, maxsplit=1)
+            except ValueError:
+                raise Dklab_Realplexor_Exception("Non-HTTP response received:\n" + result_str)
+
+            m = re.match(r'^HTTP/[\d.]+\s+((\d+)[^\r\n]*)', headers)
             if not m:
-                raise Dklab_Realplexor_Exception("Non-HTTP response received:\n" + result)
+                raise Dklab_Realplexor_Exception("Non-HTTP response received:\n" + result_str)
+
             if m.group(2) != "200":
-                raise Dklab_Realplexor_Exception("Request failed: " + m.group(1) + "\n" + body);
-            m = re.search('Content-Length:\s*(\d+)', headers)
+                raise Dklab_Realplexor_Exception(f"Request failed: {m.group(1)}\n{body}")
+
+            m = re.search(r'Content-Length:\s*(\d+)', headers, re.IGNORECASE)
             if not m:
                 raise Dklab_Realplexor_Exception("No Content-Length header in response headers:\n" + headers)
-            needLen = int(m.group(1))
-            recvLen = len(body)
-            if recvLen != needLen:
-                raise Dklab_Realplexor_Exception("Response length (%s) is different than specified in Content-Length header (%s): possibly broken response\n" % (recvLen, needLen))
+
+            need_len = int(m.group(1))
+            if len(body) != need_len:
+                raise Dklab_Realplexor_Exception(
+                    f"Response length ({len(body)}) is different than specified in Content-Length header ({need_len})"
+                )
             return body
-        return result
+        return ""
+
 
 class Dklab_Realplexor_Exception(Exception):
-    """ Realplexor-dedicated exception class. """
+    """Realplexor-dedicated exception class."""
     pass

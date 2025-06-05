@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -49,7 +51,7 @@ public:
             chain.pop_back();
         }
         // Add item.
-        chain.push_front(DataEvent(cur_pos++, type, id));
+        chain.push_front(DataEvent(++cur_pos, type, id));
     }
 
     // Return events newer than from_cursor in order of their creation.

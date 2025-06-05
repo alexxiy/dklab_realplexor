@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -55,9 +57,7 @@ public:
     string                       charset;
     size_t                       wait_maxlen;
     int                          offline_timeout;
-    string                       iframe_id;
     string                       script_id;
-    StaticFile                   static_iframe;
     StaticFile                   static_script;
 
     string  IDENTIFIER_PLUS_EQ;
@@ -201,9 +201,7 @@ private:
         charset = config.get("CHARSET");
         wait_maxlen = config.get<size_t>("WAIT_MAXLEN");
         offline_timeout = lexical_cast<int>(config.get("OFFLINE_TIMEOUT"));
-        iframe_id = config.get("IFRAME_ID");
         script_id = config.get("SCRIPT_ID");
-        _fill_static_file("IFRAME", static_iframe);
         _fill_static_file("SCRIPT", static_script);
 
         // Generate combined constant values for faster access.

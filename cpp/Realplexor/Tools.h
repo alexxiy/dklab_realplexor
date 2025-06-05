@@ -1,8 +1,10 @@
 //@
 //@ Dklab Realplexor: Comet server which handles 1000000+ parallel browser connections
 //@ Author: Dmitry Koterov, dkLab (C)
-//@ GitHub: http://github.com/DmitryKoterov/
-//@ Homepage: http://dklab.ru/lib/dklab_realplexor/
+//@ License: GPL 2.0
+//@
+//@ 2025-* Contributor: Alexxiy
+//@ GitHub: http://github.com/alexxiy/
 //@
 //@ ATTENTION: Java-style C++ programming below. :-)
 //@
@@ -33,13 +35,12 @@ public:
     // of this function always return different time, second > first.
     static cursor_t time_hi_res()
     {
-        cursor_t time = ev::now(EV_DEFAULT);
+        cursor_t time = static_cast<cursor_t>(ev::now(EV_DEFAULT) * 10000);
         static int time_counter = 0;
         const int cycle = 1000;
         time_counter++;
         if (time_counter > cycle) time_counter = 0;
-        long double add = (1.0 / cycle) * time_counter * 0.000001;
-        return time + add;
+        return time * 10000 + time_counter;
     }
 
     // Rerun the script unlimited.

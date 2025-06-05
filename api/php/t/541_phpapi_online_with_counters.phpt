@@ -19,8 +19,8 @@ disconnect_wait();
 WA <-- identifier=5:abc,10:def,6:abc
 WA <-- aaa
 array (
-  'abc' => '1',
-  'def' => '1',
+  'abc' => 1,
+  'def' => 1,
 )
 WA :: Disconnecting.
 #   [pairs_by_fhs=0 data_to_send=0 connected_fhs=0 online_timers=2 cleanup_timers=0 events=*]

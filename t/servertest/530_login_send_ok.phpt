@@ -12,7 +12,7 @@ send_in("identifier=user:password@user_abc", "
 ");
 
 ?>
---EXPECT--
+--EXPECTF--
 # Starting.
 #   [pairs_by_fhs=0 data_to_send=0 connected_fhs=0 online_timers=0 cleanup_timers=0 events=*]
 # CONFIG: appending configuration from ***
@@ -36,4 +36,8 @@ IN <== "aaa"
 #   [pairs_by_fhs=0 data_to_send=1 connected_fhs=0 online_timers=0 cleanup_timers=1 events=*]
 # IN: DEBUG: connection closed
 #   [pairs_by_fhs=0 data_to_send=1 connected_fhs=0 online_timers=0 cleanup_timers=1 events=*]
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: %d
 IN ==>
+IN ==> user_abc %d

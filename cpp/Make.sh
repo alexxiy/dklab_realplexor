@@ -1,7 +1,8 @@
 #!/bin/bash
 
-GCC="g++ -std=gnu++0x -static"
+#GCC="g++ -std=gnu++0x -static"
 #GCC="g++ -std=gnu++0x"
+GCC="c++ -std=c++23"
 #DEBUG="-g3 -O0"
 DEBUG="-O3"
 export INCLUDE=$INCLUDE:libev

@@ -24,11 +24,21 @@ send_in(null, "stats");
 IN <== X-Realplexor: identifier=1:abc,1:def
 IN <==
 IN <== "a"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 12
 IN ==>
+IN ==> abc 1
+IN ==> def 1
 IN <== X-Realplexor: identifier=1:abc,1:def
 IN <==
 IN <== "bb"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 12
 IN ==>
+IN ==> abc 1
+IN ==> def 1
 IN <== stats
 IN ==> HTTP/1.0 200 OK
 IN ==> Content-Type: text/plain
@@ -50,7 +60,12 @@ IN ==> [pairs_by_fhs]
 IN <== X-Realplexor: identifier=1:abc,1:def
 IN <==
 IN <== "ccc"
+IN ==> HTTP/1.0 200 OK
+IN ==> Content-Type: text/plain
+IN ==> Content-Length: 12
 IN ==>
+IN ==> abc 1
+IN ==> def 1
 IN <== stats
 IN ==> HTTP/1.0 200 OK
 IN ==> Content-Type: text/plain
