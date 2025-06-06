@@ -1,5 +1,6 @@
 <?php
-    const REALPLEXOR_URL = 'https://im1.platform.loc';
+    // change it to yours
+    const REALPLEXOR_URL = 'https://rpl.domain.com';
 ?>
 
 <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
